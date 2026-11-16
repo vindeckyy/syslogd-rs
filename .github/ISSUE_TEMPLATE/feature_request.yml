@@ -1,0 +1,26 @@
+name: Feature Request
+description: Suggest a change to the supported subset or behavior
+labels: [enhancement]
+body:
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Problem
+      description: What are you trying to do today that syslogd-rs blocks or handles poorly?
+      validations:
+        required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: >
+        Concrete config example or request. Note whether it changes the
+        supported subset from README.md's support matrix.
+      placeholder: |
+        e.g. action(type="omfwd" ... queue.type="Disk") should spill
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered

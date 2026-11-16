@@ -1,0 +1,26 @@
+[package]
+name = "syslogd"
+version = "0.1.0"
+edition = "2021"
+description = "memory-safe rsyslog-compatible syslog daemon"
+homepage = "https://github.com/vindeckyy/syslogd-rs"
+repository = "https://github.com/vindeckyy/syslogd-rs"
+license = "MIT"
+rust-version = "1.85"
+
+[dependencies]
+syslog-core = { path = "../syslog-core" }
+clap = { version = "4", features = ["derive"] }
+tokio = { version = "1", features = ["net", "fs", "signal", "rt-multi-thread", "time", "process", "macros", "sync", "io-util", "io-std"] }
+bytes = "1"
+rustls = { version = "0.23", features = ["ring"] }
+tokio-rustls = "0.26"
+rustls-pemfile = "2"
+time = { version = "0.3", features = ["formatting", "parsing", "macros", "local-offset"] }
+[[bin]]
+name = "syslogd-rs"
+path = "src/main.rs"
+
+[[bin]]
+name = "syslogng2rsyslog"
+path = "src/bin/syslogng2rsyslog.rs"

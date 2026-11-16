@@ -1,0 +1,18 @@
+[Unit]
+Description=memory-safe syslog daemon (rsyslog-compatible)
+Requires=syslog.socket
+After=network.target
+
+[Service]
+Type=notify
+ExecStart=/usr/sbin/syslogd-rs -n -iNONE -f /etc/rsyslog.conf
+ExecReload=/bin/kill -HUP $MAINPID
+StandardOutput=null
+StandardError=journal
+Restart=on-failure
+# No User= and no AmbientCapabilities: the process needs root to bind
+# privileged ports and to honor $PrivDropToUser/$PrivDropToGroup.
+
+[Install]
+WantedBy=multi-user.target
+Alias=syslog.service

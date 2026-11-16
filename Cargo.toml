@@ -1,0 +1,8 @@
+[workspace]
+resolver = "2"
+members = ["crates/syslog-core", "crates/syslogd"]
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"

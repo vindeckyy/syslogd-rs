@@ -1,0 +1,127 @@
+.TH SYSLOGD-RS 8 "2026-11" "syslogd-rs 0.1.0" "System Manager's Manual"
+.SH NAME
+syslogd-rs \- memory-safe rsyslog-compatible syslog daemon
+.SH SYNOPSIS
+.B syslogd-rs
+.RI [ options ]
+.SH DESCRIPTION
+.B syslogd-rs
+is a syslog daemon that reads a documented subset of
+.IR rsyslog.conf(5)
+(including file includes), receives local system logging and
+UDP/TCP/TLS syslog traffic, and routes it with rsyslog rule
+semantics. It is designed to be a safe drop-in for
+.BR rsyslogd (8)
+on Debian/Ubuntu and RHEL-family hosts.
+.PP
+The daemon takes its local input from systemd's
+.B syslog.socket
+(a pre-bound unix datagram socket at
+.BR /run/systemd/journal/syslog )
+when activated by systemd, otherwise binds
+.B /dev/log
+directly. It never binds the journal socket itself.
+.SH OPTIONS
+.TP
+.BI \-f " " config
+Read configuration from
+.IR config
+(default: /etc/rsyslog.conf). File and RainerScript
+.IR module()/input()/include()
+directives are expanded inline at their position.
+.TP
+.B \-N1, --check
+Strict configuration validation: parse, check every referenced
+resource, and exit. Any unsupported construct is reported as
+.IR file:line: unsupported construct
+and fails with exit code 1. A TLS listener without a configured
+certificate and key likewise fails. No daemon is started and no
+port is bound.
+.TP
+.B --compat
+Use rsyslog's own permissive parsing: unknown directives and
+templates produce warnings and are skipped rather than failing.
+.TP
+.BI \-o , --dump-merged
+Print the include-expanded configuration with
+.IR file:line
+origin headers and exit.
+.TP
+.TP
+.B \-d
+Accepted for rsyslogd parity (debug output).
+.TP
+.B \-n
+Run in the foreground. Always set under systemd supervision.
+.TP
+.BI \-i pidfile
+Write the PID to
+.IR pidfile
+(mode 0600). Value
+.B NONE
+disables it. The service unit uses
+.B \-i NONE
+with
+.B "Type=simple"
+or the shipped
+.B "Type=notify"
+unit, which sends
+.B READY=1
+after all listeners bind.
+.SH SIGNALS
+.TP
+.BR SIGTERM ", " SIGINT
+Graceful shutdown: stop ingress, drain, print metrics summary,
+exit 0.
+.TP
+.B SIGHUP
+Re-parse the configuration. On success the internal ruleset is
+swapped under the same listeners; on failure the old
+configuration keeps running and the error is logged.
+.TP
+.B SIGUSR2
+Print the metrics table.
+.SH EXIT STATUS
+0 success; 1 configuration/parse error; 2 bind/listener error
+(including
+.B tls_cert_missing
+on TLS listeners); 3 internal error.
+.SH FILES
+.TP
+.B /etc/rsyslog.conf
+Default configuration file.
+.TP
+.B /etc/rsyslog.d/*.conf
+Included configuration files when the main config requests them.
+.TP
+.B /usr/lib/systemd/system/syslogd-rs.service
+Service unit installed by the package. Requires
+.B syslog.socket
+and aliases
+.B syslog.service
+so existing units work unchanged.
+.SH NOTES
+TLS (StreamDriver.Mode="1") is fail-closed: no certificate and
+key means the listener fails to start; there is no plaintext
+fallback on a TLS port. Peer authentication modes:
+.B "x509/name"
+(chain plus SAN name match against PermittedPeer) and
+.B "x509/certvalid"
+(chain only). The
+.B anon
+and
+.B fingerprint
+and TLS driver modes are parsed using rsyslog-compatible names
+but accepted only where safe.
+.PP
+Not supported (strict parse error when configured): RELP,
+imjournal/omjournal, database/shell/pipe actions, disk queues,
+full RainerScript (if/call/ruleset), non-* omusrmsg users,
+and non-rsyslog (syslog-ng) configuration files. Use
+.BR syslogng2rsyslog(1)
+for common syslog-ng patterns instead.
+.SH SEE ALSO
+.BR rsyslog.conf (5),
+.BR syslogng2rsyslog (1),
+.BR systemd (1),
+.BR journalctl (1)

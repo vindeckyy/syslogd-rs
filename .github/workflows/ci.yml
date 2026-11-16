@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  fmt:
+    name: rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt --all -- --check
+
+  clippy:
+    name: clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - run: cargo clippy --all-targets -- -D warnings
+
+  test:
+    name: test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --locked
+
+  linux-check:
+    name: linux check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-gnu
+      - run: cargo check --locked --target x86_64-unknown-linux-gnu
+
+  fixtures:
+    name: config fixtures
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build
+      - working-directory: tests/fixtures
+        run: |
+          BIN="$GITHUB_WORKSPACE/target/debug/syslogd-rs"
+          "$BIN" -N1 -f debian-rsyslog.conf
+          "$BIN" -N1 -f rhel-rsyslog.conf
+          for f in bad/*.conf; do
+            if "$BIN" -N1 -f "$f" >/dev/null 2>&1; then
+              echo "expected strict failure: $f" >&2; exit 1
+            fi
+            "$BIN" -N1 --compat -f "$f" >/dev/null
+          done
+          if "$BIN" -N1 -f forward-tls.conf >/dev/null 2>&1; then
+            echo "expected tls_cert_missing failure" >&2; exit 1
+          fi

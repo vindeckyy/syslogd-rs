@@ -1,0 +1,22 @@
+[package]
+name = "syslog-core"
+version = "0.1.0"
+edition = "2021"
+description = "rsyslog-compatible syslog daemon core library"
+homepage = "https://github.com/vindeckyy/syslogd-rs"
+repository = "https://github.com/vindeckyy/syslogd-rs"
+license = "MIT"
+rust-version = "1.85"
+
+[dependencies]
+tokio = { version = "1", features = ["net", "fs", "signal", "rt-multi-thread", "time", "process", "macros", "sync", "io-util", "io-std"] }
+bytes = "1"
+time = { version = "0.3", features = ["formatting", "parsing", "macros", "local-offset"] }
+thiserror = "2"
+glob = "0.3"
+regex = "1"
+rustls = { version = "0.23", features = ["ring"] }
+tokio-rustls = "0.26"
+rustls-pemfile = "2"
+rustls-pki-types = "1"
+x509-parser = "0.18.1"

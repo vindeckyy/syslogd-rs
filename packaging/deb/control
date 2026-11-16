@@ -1,0 +1,14 @@
+Package: syslogd-rs
+Version: 0.1.0
+Section: admin
+Priority: optional
+Architecture: amd64
+Maintainer: syslogd-rs maintainers
+Depends: bsdutils
+Conflicts: rsyslog, syslog-ng, sysklogd, inetutils-syslogd
+Description: memory-safe rsyslog-compatible syslog daemon
+ A Linux syslog daemon in Rust. It parses a documented subset of
+ rsyslog.conf, receives systemd journal messages, kernel messages
+ and network syslog (UDP/TCP/TLS), and routes them with the same
+ rule semantics as rsyslogd. Strict checking: unsupported config
+ constructs fail closed instead of silently dropping rules.

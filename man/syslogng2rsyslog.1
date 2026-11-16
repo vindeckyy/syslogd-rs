@@ -1,0 +1,23 @@
+.TH SYSLOGNG2RSYSLOG 1 "2026-11" "syslogd-rs 0.1.0" "User Commands"
+.SH NAME
+syslogng2rsyslog \- convert common syslog-ng configuration to rsyslog subset
+.SH SYNOPSIS
+.B syslogng2rsyslog
+.RI < input.conf
+.SH DESCRIPTION
+.B syslogng2rsyslog
+reads a syslog-ng configuration on standard input and emits the
+supported rsyslog subset on standard output: sources (udp/tcp/
+unix-dgram), destinations (file/udp/tcp), simple filters
+(facility/level), and log paths, with
+.B flags(final)
+mapped to
+.B stop.
+Unconvertible constructs are reported as
+.B "line N: unsupported construct"
+and produce a non-zero exit status (fail-closed, same policy as
+the daemon parser). It is intended for one-shot migration, not
+continuous fidelity.
+.SH SEE ALSO
+.BR syslogd-rs (8),
+.BR rsyslog.conf (5)
