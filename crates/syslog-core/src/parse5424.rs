@@ -25,7 +25,7 @@ fn pri(input: &[u8]) -> Result<(u8, usize), ParseErr> {
         .iter()
         .position(|&b| b == b'>')
         .ok_or(ParseErr::BadPri)?;
-    if end < 2 || end > 4 {
+    if !(2..=4).contains(&end) {
         return Err(ParseErr::BadPri);
     }
     let digits = &input[1..end];

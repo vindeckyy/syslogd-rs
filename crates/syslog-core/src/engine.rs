@@ -47,6 +47,12 @@ impl Metrics {
     }
 }
 
+impl Default for Metrics {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[allow(dead_code)]
 enum ActionHandle {
     File(mpsc::Sender<crate::action_file::FileJob>),
@@ -348,8 +354,8 @@ impl Engine {
                 match w {
                     ActionHandle::File(tx) => {
                         let target: std::path::PathBuf;
-                        let content: bytes::Bytes;
-                        if s.is_dyn {
+                        
+                        let content: bytes::Bytes = if s.is_dyn {
                             let dt = s.dyn_template.as_ref().unwrap();
                             let t = match self.templates.get(dt) {
                                 Some(t) => t.clone(),
@@ -361,7 +367,7 @@ impl Engine {
                                 .clone()
                                 .unwrap_or_else(|| "RSYSLOG_FileFormat".into());
                             let ct = self.templates.get(&name).cloned().unwrap_or(t);
-                            content = ct.render(m, &tg).into();
+                            ct.render(m, &tg).into()
                         } else {
                             target = s.static_path.clone().unwrap_or_default();
                             let name = s
@@ -372,8 +378,8 @@ impl Engine {
                                 Some(t) => t.clone(),
                                 None => continue,
                             };
-                            content = t.render(m, &tg).into();
-                        }
+                            t.render(m, &tg).into()
+                        };
                         if target.as_os_str().is_empty() {
                             continue;
                         }

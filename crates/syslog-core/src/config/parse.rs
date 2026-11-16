@@ -274,7 +274,6 @@ fn expand(
 ) -> Result<(), ConfigError> {
     let canon = path
         .canonicalize()
-        .map(|p| p)
         .unwrap_or_else(|_| path.to_path_buf());
     if !seen.insert(canon.clone()) {
         return Err(ConfigError::parse(
@@ -354,7 +353,7 @@ fn strip_comment(line: &str) -> String {
 fn include_glob(line: &str) -> Option<String> {
     let t = line.trim();
     if t.starts_with("$IncludeConfig") {
-        let v = t["$IncludeConfig".len()..].trim();
+        let v = t.strip_prefix("$IncludeConfig").unwrap().trim();
         if v.is_empty() {
             return None;
         }
@@ -770,18 +769,16 @@ fn check_queue_params(
                 }
             }
         }
-        if lk.starts_with("queue.filename")
+        if (lk.starts_with("queue.filename")
             || lk.starts_with("queue.max")
             || lk.starts_with("queue.timeout")
             || lk.starts_with("queue.saveonshutdown")
             || lk.starts_with("queue.hiwatermark")
             || lk.starts_with("queue.lowatermark")
-            || lk.starts_with("actionresumeretrycount")
-        {
-            if lk.starts_with("queue.filename") {
+            || lk.starts_with("actionresumeretrycount"))
+            && lk.starts_with("queue.filename") {
                 d.unsup(file, lineno, "disk queue params")?;
             }
-        }
     }
     Ok(())
 }
@@ -976,7 +973,7 @@ fn parse_legacy_rule(
 ) -> Result<(), ConfigError> {
     // & continuation
     if line.starts_with('&') {
-        let rest = line[1..].trim();
+        let rest = line.strip_prefix('&').unwrap().trim();
         if rest == "stop" || rest.starts_with("stop") && rest.len() == 4 {
             if let Some(last) = cfg.rules.last_mut() {
                 last.stop = true;
@@ -1172,9 +1169,9 @@ fn parse_legacy_action(
     }
     if s.starts_with(':') {
         // :omusrmsg:* etc.
-        let body = s[1..].to_string();
+        let body = s.strip_prefix(':').unwrap().to_string();
         if body.starts_with("omusrmsg:") {
-            let users = body["omusrmsg:".len()..].to_string();
+            let users = body.strip_prefix("omusrmsg:").unwrap().to_string();
             if users != "*" {
                 d.unsup(file, lineno, "omusrmsg named users")?;
             }
@@ -1218,7 +1215,7 @@ fn parse_legacy_action(
     }
     if let Some(stripped) = p.strip_prefix('"') {
         if stripped.ends_with('"') {
-            p = &stripped[..stripped.len() - 1];
+            p = stripped.strip_suffix('"').unwrap();
         }
     }
     if p.starts_with("/dev/tty") {
@@ -1299,7 +1296,7 @@ fn finalize(cfg: &mut Config, _d: &mut Diag) -> Result<(), ConfigError> {
             tls: None,
         });
     }
-    cfg.inputs.sort_by_key(|i| input_key(i));
+    cfg.inputs.sort_by_key(input_key);
     cfg.inputs.dedup_by_key(|i| input_key(i));
     // template define-before-use + dynafile secpath check
     for r in &cfg.rules {

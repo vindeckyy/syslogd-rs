@@ -37,14 +37,14 @@ fn convert(src: &str) -> Result<String, String> {
                 let port = inner
                     .split(';')
                     .find(|s| s.contains("udp("))
-                    .map(|p| param(&p, "port"))
+                    .map(|p| param(p, "port"))
                     .unwrap_or_else(|| "514".into());
                 sources.insert(name, format!("$ModLoad imudp\n$UDPServerRun {port}\n"));
             } else if inner.contains("tcp(") {
                 let port = inner
                     .split(';')
                     .find(|s| s.contains("tcp("))
-                    .map(|p| param(&p, "port"))
+                    .map(|p| param(p, "port"))
                     .unwrap_or_else(|| "514".into());
                 sources.insert(name, format!("$ModLoad imtcp\n$InputTCPServerRun {port}\n"));
             } else if inner.contains("unix-dgram") || inner.contains("/dev/log") {
@@ -72,7 +72,7 @@ fn convert(src: &str) -> Result<String, String> {
                     .map(|x| x.trim())
                     .unwrap_or("");
                 let host = quoted_in_parens(p, "\"").unwrap_or_default();
-                let port = param(&p, "port");
+                let port = param(p, "port");
                 dests.insert(name, format!("*.* @{host}:{port}\n"));
             } else if inner.contains("tcp(") {
                 let p = inner
@@ -82,7 +82,7 @@ fn convert(src: &str) -> Result<String, String> {
                     .map(|x| x.trim())
                     .unwrap_or("");
                 let host = quoted_in_parens(p, "\"").unwrap_or_default();
-                let port = param(&p, "port");
+                let port = param(p, "port");
                 dests.insert(name, format!("*.* @@{host}:{port}\n"));
             } else {
                 return Err(format!("line {}: unsupported destination", ln + 1));

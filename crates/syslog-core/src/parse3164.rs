@@ -30,10 +30,7 @@ pub fn parse_rfc3164(
     now: OffsetDateTime,
     local_tz: UtcOffset,
 ) -> Result<Msg, ParseErr> {
-    let (pri_v, mut i) = match pri(input) {
-        Ok(v) => v,
-        Err(e) => return Err(e),
-    };
+    let (pri_v, mut i) = pri(input)?;
     // TIMESTAMP "Mmm dd hh:mm:ss" — 15 bytes, day may be ' d' or 'dd'
     if input.len() < i + 15 {
         return Err(ParseErr::Truncated);
@@ -45,9 +42,9 @@ pub fn parse_rfc3164(
     let d1 = input[i + 4];
     let d2 = input[i + 5];
     let day = if d1 == b' ' {
-        (d2 - b'0') as u8
+        d2 - b'0'
     } else {
-        ((d1 - b'0') as u8) * 10 + (d2 - b'0') as u8
+        (d1 - b'0') * 10 + (d2 - b'0')
     };
     if input[i + 6] != b' ' {
         return Err(ParseErr::BadTimestamp);
@@ -82,7 +79,7 @@ pub fn parse_rfc3164(
     let rest = &input[i..];
     let (tag, msg_start) = tag_and_msg(rest, i);
     let programname = tag
-        .split(|c| c == '[' || c == ':')
+        .split(['[', ':'])
         .next()
         .filter(|s| !s.is_empty())
         .map(String::from);
@@ -121,7 +118,7 @@ fn pri(input: &[u8]) -> Result<(u8, usize), ParseErr> {
         .iter()
         .position(|&b| b == b'>')
         .ok_or(ParseErr::BadPri)?;
-    if end < 2 || end > 4 {
+    if !(2..=4).contains(&end) {
         return Err(ParseErr::BadPri);
     }
     let digits = &input[1..end];

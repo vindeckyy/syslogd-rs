@@ -237,15 +237,14 @@ fn build_acceptor(
     let key_path = t.key.clone().or_else(|| cfg.globals.tls_key.clone());
     let (Some(cp), Some(kp)) = (cert_path, key_path) else {
         eprintln!("tls_cert_missing on TLS listener");
-        return Err(std::io::Error::new(
-            std::io::ErrorKind::Other,
+        return Err(std::io::Error::other(
             "tls_cert_missing",
         ));
     };
     let cert_data = std::fs::read(&cp)
-        .map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, "tls_cert_missing"))?;
+        .map_err(|_| std::io::Error::other("tls_cert_missing"))?;
     let key_data = std::fs::read(&kp)
-        .map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, "tls_key_missing"))?;
+        .map_err(|_| std::io::Error::other("tls_key_missing"))?;
     let certs: Vec<rustls::pki_types::CertificateDer> =
         rustls_pemfile::certs(&mut std::io::Cursor::new(&cert_data[..]))
             .filter_map(Result::ok)
@@ -253,7 +252,7 @@ fn build_acceptor(
     let key_der = rustls_pemfile::pkcs8_private_keys(&mut std::io::Cursor::new(&key_data[..]))
         .filter_map(Result::ok)
         .next()
-        .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::Other, "tls_key_parse"))?;
+        .ok_or_else(|| std::io::Error::other("tls_key_parse"))?;
     let key = rustls::pki_types::PrivateKeyDer::Pkcs8(key_der);
     // Client-cert verification: chain via configured CA (or server's
     // own CA file). x509/name additionally checks SAN names against
@@ -264,11 +263,11 @@ fn build_acceptor(
         Some(v) => builder
             .with_client_cert_verifier(v)
             .with_single_cert(certs, key)
-            .map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, "tls_cert_invalid"))?,
+            .map_err(|_| std::io::Error::other("tls_cert_invalid"))?,
         None => builder
             .with_no_client_auth()
             .with_single_cert(certs, key)
-            .map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, "tls_cert_invalid"))?,
+            .map_err(|_| std::io::Error::other("tls_cert_invalid"))?,
     };
     Ok((tokio_rustls::TlsAcceptor::from(Arc::new(server)), peer))
 }
@@ -283,7 +282,7 @@ fn client_verifier(
         return Ok(None);
     };
     let data = std::fs::read(&ca_path)
-        .map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, "tls_ca_missing"))?;
+        .map_err(|_| std::io::Error::other("tls_ca_missing"))?;
     let mut roots = rustls::RootCertStore::empty();
     let mut cur = std::io::Cursor::new(&data[..]);
     let pem: Vec<_> = rustls_pemfile::certs(&mut cur)
@@ -303,7 +302,7 @@ fn client_verifier(
     );
     let v = v
         .build()
-        .map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, "tls_ca_invalid"))?;
+        .map_err(|_| std::io::Error::other("tls_ca_invalid"))?;
     Ok(Some(
         v as Arc<dyn rustls::server::danger::ClientCertVerifier + Send + Sync>,
     ))
