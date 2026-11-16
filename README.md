@@ -64,7 +64,7 @@ semantics: [docs/CONFIG_SUBSET.md](docs/CONFIG_SUBSET.md).
 | Inputs | imuxsock, imklog, imudp, imtcp |
 | Outputs | omfile, omfwd, omusrmsg(\*), omstdout, discard |
 | TLS | `StreamDriver.Mode="1"` listeners + forward, `x509/name` / `x509/certvalid` |
-| Templates | property replacer + `RSYSLOG_*` built-ins, `secpath-replace` required on dyn paths |
+| Templates | property replacer + `RSYSLOG_*` built-ins (byte-exact) |
 | Modules not supported | imjournal, imrelp, immark, omrelp, omjournal, DB outputs, disk queues, pipes, `^program`, full RainerScript |
 
 Anything outside the matrix is a strict parse error with a
