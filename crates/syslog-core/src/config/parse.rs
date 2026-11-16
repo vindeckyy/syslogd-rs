@@ -272,9 +272,7 @@ fn expand(
     out: &mut Vec<(String, usize, String)>,
     seen: &mut HashSet<PathBuf>,
 ) -> Result<(), ConfigError> {
-    let canon = path
-        .canonicalize()
-        .unwrap_or_else(|_| path.to_path_buf());
+    let canon = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
     if !seen.insert(canon.clone()) {
         return Err(ConfigError::parse(
             &canon.to_string_lossy(),
@@ -776,9 +774,10 @@ fn check_queue_params(
             || lk.starts_with("queue.hiwatermark")
             || lk.starts_with("queue.lowatermark")
             || lk.starts_with("actionresumeretrycount"))
-            && lk.starts_with("queue.filename") {
-                d.unsup(file, lineno, "disk queue params")?;
-            }
+            && lk.starts_with("queue.filename")
+        {
+            d.unsup(file, lineno, "disk queue params")?;
+        }
     }
     Ok(())
 }

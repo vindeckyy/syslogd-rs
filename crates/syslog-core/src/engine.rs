@@ -354,7 +354,7 @@ impl Engine {
                 match w {
                     ActionHandle::File(tx) => {
                         let target: std::path::PathBuf;
-                        
+
                         let content: bytes::Bytes = if s.is_dyn {
                             let dt = s.dyn_template.as_ref().unwrap();
                             let t = match self.templates.get(dt) {

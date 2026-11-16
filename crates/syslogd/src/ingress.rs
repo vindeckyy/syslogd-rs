@@ -237,14 +237,10 @@ fn build_acceptor(
     let key_path = t.key.clone().or_else(|| cfg.globals.tls_key.clone());
     let (Some(cp), Some(kp)) = (cert_path, key_path) else {
         eprintln!("tls_cert_missing on TLS listener");
-        return Err(std::io::Error::other(
-            "tls_cert_missing",
-        ));
+        return Err(std::io::Error::other("tls_cert_missing"));
     };
-    let cert_data = std::fs::read(&cp)
-        .map_err(|_| std::io::Error::other("tls_cert_missing"))?;
-    let key_data = std::fs::read(&kp)
-        .map_err(|_| std::io::Error::other("tls_key_missing"))?;
+    let cert_data = std::fs::read(&cp).map_err(|_| std::io::Error::other("tls_cert_missing"))?;
+    let key_data = std::fs::read(&kp).map_err(|_| std::io::Error::other("tls_key_missing"))?;
     let certs: Vec<rustls::pki_types::CertificateDer> =
         rustls_pemfile::certs(&mut std::io::Cursor::new(&cert_data[..]))
             .filter_map(Result::ok)
@@ -281,8 +277,7 @@ fn client_verifier(
     let Some(ca_path) = ca_path else {
         return Ok(None);
     };
-    let data = std::fs::read(&ca_path)
-        .map_err(|_| std::io::Error::other("tls_ca_missing"))?;
+    let data = std::fs::read(&ca_path).map_err(|_| std::io::Error::other("tls_ca_missing"))?;
     let mut roots = rustls::RootCertStore::empty();
     let mut cur = std::io::Cursor::new(&data[..]);
     let pem: Vec<_> = rustls_pemfile::certs(&mut cur)
